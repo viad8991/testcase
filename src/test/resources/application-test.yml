@@ -1,0 +1,7 @@
+okved:
+  source:
+    url: http://localhost:8080/mock/okved.json
+
+logging:
+  level:
+    ru.test: DEBUG

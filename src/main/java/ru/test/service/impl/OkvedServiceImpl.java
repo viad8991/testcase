@@ -12,7 +12,7 @@ import ru.test.service.PhoneNormalizer;
 import java.util.List;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.test.util.Const.UNKNOWN;
+import static ru.test.util.Constants.UNKNOWN;
 
 @Service
 public class OkvedServiceImpl implements OkvedService {
@@ -47,7 +47,7 @@ public class OkvedServiceImpl implements OkvedService {
     @NonNull
     private Okved findOkved(@NonNull List<Okved> okveds, @NonNull String endPhone) {
         for (Okved okved : okveds) {
-            String code = okved.code().replaceAll("\\.", "");
+            String code = removeDots(okved.code());
 
             if (endPhone.startsWith(code)) { // TODO ОКВЕД по типу "01.13.4" никогда не будет найден
                 Okved findOkved = isEmpty(okved.items())
@@ -61,8 +61,12 @@ public class OkvedServiceImpl implements OkvedService {
         return Okved.UNKNOWN;
     }
 
-    private int getMatchLength(String code) {
-        // TODO "01.01".length() -> 5
-        return UNKNOWN.equalsIgnoreCase(code) ? 0 : code.length();
+    @NonNull
+    private String removeDots(@NonNull String text) {
+        return text.replace(".", "");
+    }
+
+    private int getMatchLength(@NonNull String code) {
+        return UNKNOWN.equalsIgnoreCase(code) ? 0 : removeDots(code).length();
     }
 }

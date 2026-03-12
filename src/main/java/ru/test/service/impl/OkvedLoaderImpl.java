@@ -33,7 +33,7 @@ public class OkvedLoaderImpl implements OkvedLoader {
 
     public OkvedLoaderImpl(
             ObjectMapper objectMapper,
-            @Value("${okved.source.url:https://raw.githubusercontent.com/bergstar/testcase/refs/heads/master/okved.json}")
+            @Value("${okved.source.url}")
             String okvedsUrl
     ) {
         this.objectMapper = objectMapper;
@@ -64,7 +64,7 @@ public class OkvedLoaderImpl implements OkvedLoader {
 
             log.info("ОКВЕДы были обновлены");
         } catch (IOException ex) {
-            log.error("Возникла ошибка при обновлении данных об ОКВЕДах", ex);
+            log.error("Возникла ошибка при обновлении ОКВЕДов", ex);
         }
     }
 

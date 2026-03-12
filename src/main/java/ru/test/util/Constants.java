@@ -1,8 +1,8 @@
 package ru.test.util;
 
-public class Const {
+public class Constants {
 
-    private Const() {
+    private Constants() {
         // TODO можно использовать lombok, @UtilityClass
     }
 

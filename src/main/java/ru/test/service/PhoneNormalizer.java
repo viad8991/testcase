@@ -1,11 +1,11 @@
 package ru.test.service;
 
 import org.springframework.lang.NonNull;
-import ru.test.exeptions.PhoneNumberExceptions;
+import ru.test.exeption.InvalidPhoneNumberException;
 
 public interface PhoneNormalizer {
 
     @NonNull
-    String normalize(@NonNull String text) throws PhoneNumberExceptions;
+    String normalize(@NonNull String text) throws InvalidPhoneNumberException;
 
 }

@@ -1,7 +1,7 @@
 package ru.test.service;
 
 import org.junit.jupiter.api.Test;
-import ru.test.exeptions.PhoneNumberExceptions;
+import ru.test.exeption.InvalidPhoneNumberException;
 import ru.test.service.impl.RussianPhoneNormalizer;
 
 import java.util.List;
@@ -31,9 +31,9 @@ class PhoneNormalizerTest {
             assertEquals(expected, actual, "Номер телефона: " + phoneNumber);
         });
 
-        List.of("+8200000000", "----", "       ", "+7920000000", "792000F0000", "foobar").forEach(phoneNumber ->
+        List.of("+8200000000", "----", "       ", "+7920000000", "792000F0000", "foobar", "+76200000000").forEach(phoneNumber ->
                 assertThrows(
-                        PhoneNumberExceptions.class,
+                        InvalidPhoneNumberException.class,
                         () -> rusPhoneNormalizer.normalize(phoneNumber),
                         "Номер телефона: " + phoneNumber
                 )

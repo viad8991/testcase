@@ -5,6 +5,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public abstract class ApplicationIT {
+public abstract class ApplicationTest {
 
 }

@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.ResourceUtils;
-import ru.test.ApplicationIT;
+import ru.test.ApplicationTest;
 import ru.test.dto.Okved;
 import ru.test.service.OkvedLoader;
 
@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-class OkvedControllerIntegrationTest extends ApplicationIT {
+class OkvedControllerIntegrationTest extends ApplicationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -52,7 +52,7 @@ class OkvedControllerIntegrationTest extends ApplicationIT {
                 .andExpect(jsonPath("$.phoneNormalized").value("+79000011101"))
                 .andExpect(jsonPath("$.okvedCode").value("01.11"))
                 .andExpect(jsonPath("$.okvedName").value("Выращивание зерновых (кроме риса), зернобобовых культур и семян масличных культур"))
-                .andExpect(jsonPath("$.matchLength").value("5"))
+                .andExpect(jsonPath("$.matchLength").value("4"))
                 .andDo(print());
 
         mockMvc.perform(post("/api/v1/okved/find")
@@ -61,7 +61,7 @@ class OkvedControllerIntegrationTest extends ApplicationIT {
                 .andExpect(jsonPath("$.phoneNormalized").value("+79000011112"))
                 .andExpect(jsonPath("$.okvedCode").value("01.11.12"))
                 .andExpect(jsonPath("$.okvedName").value("Выращивание ячменя"))
-                .andExpect(jsonPath("$.matchLength").value("8"))
+                .andExpect(jsonPath("$.matchLength").value("6"))
                 .andDo(print());
 
         mockMvc.perform(post("/api/v1/okved/find")

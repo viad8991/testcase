@@ -3,10 +3,10 @@ package ru.test.service.impl;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import ru.test.dto.Okved;
-import ru.test.dto.OkvedLookupResult;
+import ru.test.dto.OkvedResponse;
 import ru.test.mapper.OkvedMapper;
 import ru.test.service.OkvedLoader;
-import ru.test.service.OkvedService;
+import ru.test.service.OkvedMatcherService;
 import ru.test.service.PhoneNormalizer;
 
 import java.util.List;
@@ -15,19 +15,19 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import static ru.test.util.Constants.UNKNOWN;
 
 @Service
-public class OkvedServiceImpl implements OkvedService {
+public class OkvedPhoneMatcherServiceImpl implements OkvedMatcherService {
 
     private final OkvedLoader okvedLoader;
     private final PhoneNormalizer phoneNormalizer;
 
-    public OkvedServiceImpl(PhoneNormalizer phoneNormalizer, OkvedLoader okvedLoader) {
+    public OkvedPhoneMatcherServiceImpl(PhoneNormalizer phoneNormalizer, OkvedLoader okvedLoader) {
         this.phoneNormalizer = phoneNormalizer;
         this.okvedLoader = okvedLoader;
     }
 
     @Override
-    public OkvedLookupResult findOkvedByPhone(@NonNull String phoneNumber) {
-        String normalizePhoneNumber = phoneNormalizer.normalize(phoneNumber);
+    public OkvedResponse findOkved(@NonNull String text) {
+        String normalizePhoneNumber = phoneNormalizer.normalize(text);
         List<Okved> okveds = okvedLoader.getOkveds();
 
         String potentialOkvedCode = fetchPotentialOkvedCode(normalizePhoneNumber);
@@ -35,7 +35,7 @@ public class OkvedServiceImpl implements OkvedService {
         Okved findOkved = findOkved(okveds, potentialOkvedCode);
         int matchLength = getMatchLength(findOkved.code());
 
-        return OkvedMapper.toOkvedLookupResult(normalizePhoneNumber, findOkved, matchLength);
+        return OkvedMapper.toResponse(normalizePhoneNumber, findOkved, matchLength);
     }
 
     @NonNull
@@ -44,6 +44,10 @@ public class OkvedServiceImpl implements OkvedService {
                 .substring(phoneNumber.length() - 6);
     }
 
+    // TODO нужно:
+    //  +79279901111 -> 01.11.1 (5)
+    //  +79279990113 -> 01.13   (4)
+    //  +79279999901 -> 01      (2)
     @NonNull
     private Okved findOkved(@NonNull List<Okved> okveds, @NonNull String endPhone) {
         for (Okved okved : okveds) {

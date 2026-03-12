@@ -80,7 +80,7 @@ class OkvedControllerIntegrationTest extends ApplicationTest {
         mockMvc.perform(post("/api/v1/okved/find")
                         .param("phone", "6600011101"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Некорректный номер телефона: '6600011101'"))
+                .andExpect(content().string("Некорректный номер телефона"))
                 .andDo(print());
 
         mockMvc.perform(post("/api/v1/okved/find"))

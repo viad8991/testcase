@@ -1,5 +1,7 @@
 package ru.test.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -11,6 +13,8 @@ import java.util.regex.Pattern;
 @Component
 public class RussianPhoneNormalizer implements PhoneNormalizer {
 
+    private final Logger log = LoggerFactory.getLogger(RussianPhoneNormalizer.class);
+
     private final static Pattern NON_DIGIT_PATTERN = Pattern.compile("\\D");
 
     private final static int VALID_PHONE_LENGTH = 11;
@@ -21,7 +25,7 @@ public class RussianPhoneNormalizer implements PhoneNormalizer {
     @Override
     public String normalize(@NonNull String text) throws InvalidPhoneNumberException {
         if (!StringUtils.hasText(text))
-            throw new InvalidPhoneNumberException(text);
+            throw new InvalidPhoneNumberException();
 
         String cleaned = NON_DIGIT_PATTERN.matcher(text).replaceAll("");
         int phoneLength = cleaned.length();
@@ -31,7 +35,8 @@ public class RussianPhoneNormalizer implements PhoneNormalizer {
         } else if (phoneLength == VALID_PHONE_LENGTH_WITHOUT_CODE && cleaned.startsWith("9")) {
             cleaned = VALID_PHONE_START + cleaned.substring(1);
         } else {
-            throw new InvalidPhoneNumberException(text);
+            log.debug("Невалидный номер телефона: '{}', оригинальные текст: '{}'", cleaned, text);
+            throw new InvalidPhoneNumberException();
         }
 
         return cleaned;

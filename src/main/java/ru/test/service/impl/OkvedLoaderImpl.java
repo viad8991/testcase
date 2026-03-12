@@ -17,6 +17,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Сервис, который отвечает за хранение океведов в памяти. Решение вместе репозитория.
@@ -27,17 +28,17 @@ public class OkvedLoaderImpl implements OkvedLoader {
     private final Logger log = LoggerFactory.getLogger(OkvedLoaderImpl.class);
 
     private final ObjectMapper objectMapper;
-    private final String okvedsUrl;
+    private final String okvedsDataUrl;
 
-    private List<Okved> okvedsCache = List.of(); //TODO БД
+    private AtomicReference<List<Okved>> okvedsCache = new AtomicReference<>(); //TODO БД
 
     public OkvedLoaderImpl(
             ObjectMapper objectMapper,
             @Value("${okved.source.url}")
-            String okvedsUrl
+            String okvedsDataUrl
     ) {
         this.objectMapper = objectMapper;
-        this.okvedsUrl = okvedsUrl;
+        this.okvedsDataUrl = okvedsDataUrl;
     }
 
     @PostConstruct
@@ -48,7 +49,7 @@ public class OkvedLoaderImpl implements OkvedLoader {
     @Scheduled(cron = "0 0 3 * * ?")
     public void refreshOkvedData() {
         log.info("Начало обновления ОКВЕДов");
-        log.debug("Из источника: {}", okvedsUrl);
+        log.debug("Из источника: {}", okvedsDataUrl);
 
         try {
             // TODO Нужно преобразовывать данные сразу, а не каждый рвз в getOkveds(). Еще раз попытаться через WireMock.
@@ -58,9 +59,11 @@ public class OkvedLoaderImpl implements OkvedLoader {
             //         .flatMap(okved -> okved.items().stream())
             //         .toList();
 
-            URL url = URI.create(okvedsUrl).toURL();
-            okvedsCache = objectMapper.readValue(url, new TypeReference<>() {
+            URL url = URI.create(okvedsDataUrl).toURL();
+            List<Okved> data = objectMapper.readValue(url, new TypeReference<>() {
             });
+
+            okvedsCache.set(data);
 
             log.info("ОКВЕДы были обновлены");
         } catch (IOException ex) {
@@ -71,7 +74,7 @@ public class OkvedLoaderImpl implements OkvedLoader {
     @NonNull
     @Override
     public List<Okved> getOkveds() {
-        return new ArrayList<>(okvedsCache).stream()
+        return new ArrayList<>(okvedsCache.get()).stream()
                 .flatMap(okved -> okved.items().stream())
                 .toList();
     }

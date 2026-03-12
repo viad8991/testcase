@@ -1,6 +1,7 @@
 package ru.test.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -14,7 +15,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler({
             InvalidPhoneNumberException.class
     })
-    ResponseEntity<String> handleBadRequest(RuntimeException ex, WebRequest request) {
+    ResponseEntity<String> handleBadRequest(@NonNull Exception ex, WebRequest request) {
         return ResponseEntity
                 .badRequest()
                 .body(ex.getMessage());

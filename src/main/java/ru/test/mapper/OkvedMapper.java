@@ -2,7 +2,6 @@ package ru.test.mapper;
 
 import org.springframework.lang.NonNull;
 import ru.test.dto.Okved;
-import ru.test.dto.OkvedLookupResult;
 import ru.test.dto.OkvedResponse;
 
 public class OkvedMapper {
@@ -12,22 +11,12 @@ public class OkvedMapper {
     }
 
     @NonNull
-    public static OkvedLookupResult toOkvedLookupResult(@NonNull String phone, @NonNull Okved okved, int matchLength) {
-        return new OkvedLookupResult(
+    public static OkvedResponse toResponse(@NonNull String phone, @NonNull Okved okved, int matchLength) {
+        return new OkvedResponse(
                 phone,
                 okved.code(),
                 okved.name(),
                 matchLength
-        );
-    }
-
-    @NonNull
-    public static OkvedResponse toResponse(@NonNull OkvedLookupResult result) {
-        return new OkvedResponse(
-                result.phoneNormalized(),
-                result.okvedCode(),
-                result.okvedName(),
-                result.matchLength()
         );
     }
 

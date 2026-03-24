@@ -1,57 +1,91 @@
 package ru.test.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.ResourceUtils;
 import ru.test.ApplicationTest;
-import ru.test.dto.Okved;
-import ru.test.service.OkvedLoader;
+import ru.test.dto.Node;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class OkvedControllerIntegrationTest extends ApplicationTest {
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @MockitoBean
-    private OkvedLoader mockOkvedLoader;
+    private ObjectMapper objectMapper;
 
     @Autowired
     private MockMvc mockMvc;
 
-    @BeforeEach
-    public void setUp() throws IOException {
-        List<Okved> okveds = objectMapper.readValue(
+    private WireMockServer wireMockServer;
+
+    @BeforeAll
+    public static void setUp() throws IOException {
+        List<Node> nodes = new ObjectMapper().readValue(
                 ResourceUtils.getFile("classpath:okved.json"),
                 new TypeReference<>() {
                 });
 
-        when(mockOkvedLoader.getOkveds()).thenReturn(okveds.stream()
-                // TODO Дублирование кода из ru.test.service.impl.OkvedLoaderImpl.getOkveds. Нужен WireMock.
-                .flatMap(okved -> okved.items().stream())
-                .toList());
+
+        // when(objectMapper.readValue(ArgumentMatchers.any(URL.class), Mockito.<TypeReference<List<Node>>>any()))
+        //       .thenReturn(List.of());
+        // wireMockServer = new WireMockServer(WireMockConfiguration.options().port(8080));
+        // wireMockServer.start();
+        // WireMock.configureFor("localhost", 8080);
+    }
+
+    @AfterEach
+    public void shutDown() {
+        // if (wireMockServer != null && wireMockServer.isRunning()) {
+        //     wireMockServer.stop();
+        //     wireMockServer.shutdownServer();
+        // }
     }
 
     @Test
     void checkSuccessRequest() throws Exception {
+        List<Node> nodes = new ObjectMapper().readValue(
+                ResourceUtils.getFile("classpath:okved.json"),
+                new TypeReference<>() {
+                });
+
+        when(objectMapper.readValue(ArgumentMatchers.any(URL.class), Mockito.<TypeReference<List<Node>>>any()))
+                .thenReturn(nodes);
+
+        /*stubFor(get(urlEqualTo("/mock/okved.json"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBodyFile("okved.json"))
+        );*/
+
         mockMvc.perform(post("/api/v1/okved/find")
                         .param("phone", "9000011101"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.phoneNormalized").value("+79000011101"))
-                .andExpect(jsonPath("$.okvedCode").value("01.11"))
-                .andExpect(jsonPath("$.okvedName").value("Выращивание зерновых (кроме риса), зернобобовых культур и семян масличных культур"))
+                .andExpect(jsonPath("$.okvedCode").value("11.01"))
+                .andExpect(jsonPath("$.okvedName").value("Перегонка, очистка и смешивание спиртов"))
                 .andExpect(jsonPath("$.matchLength").value("4"))
                 .andDo(print());
 
@@ -62,6 +96,15 @@ class OkvedControllerIntegrationTest extends ApplicationTest {
                 .andExpect(jsonPath("$.okvedCode").value("01.11.12"))
                 .andExpect(jsonPath("$.okvedName").value("Выращивание ячменя"))
                 .andExpect(jsonPath("$.matchLength").value("6"))
+                .andDo(print());
+
+        mockMvc.perform(post("/api/v1/okved/find")
+                        .param("phone", "89000001134"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phoneNormalized").value("+79000001134"))
+                .andExpect(jsonPath("$.okvedCode").value("01.13.4"))
+                .andExpect(jsonPath("$.okvedName").value("Выращивание семян овощных культур, за исключением семян сахарной свеклы"))
+                .andExpect(jsonPath("$.matchLength").value("5"))
                 .andDo(print());
 
         mockMvc.perform(post("/api/v1/okved/find")

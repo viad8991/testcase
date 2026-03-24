@@ -9,13 +9,12 @@ import ru.test.service.OkvedLoader;
 import ru.test.service.OkvedMatcherService;
 import ru.test.service.PhoneNormalizer;
 
-import java.util.List;
-
-import static org.springframework.util.CollectionUtils.isEmpty;
-import static ru.test.util.Constants.UNKNOWN;
+import java.util.Map;
 
 @Service
 public class OkvedPhoneMatcherServiceImpl implements OkvedMatcherService {
+
+    private final static int MAX_OKVED_CODE_LENGTH = 6;
 
     private final OkvedLoader okvedLoader;
     private final PhoneNormalizer phoneNormalizer;
@@ -28,49 +27,31 @@ public class OkvedPhoneMatcherServiceImpl implements OkvedMatcherService {
     @Override
     public OkvedResponse findOkved(@NonNull String text) {
         String normalizePhoneNumber = phoneNormalizer.normalize(text);
-        List<Okved> okveds = okvedLoader.getOkveds();
 
-        String potentialOkvedCode = fetchPotentialOkvedCode(normalizePhoneNumber);
+        String potentialOkvedCode = getPotentialOkvedCode(normalizePhoneNumber);
+        Map<String, Okved> okvedCodeMap = okvedLoader.getOkveds();
 
-        Okved findOkved = findOkved(okveds, potentialOkvedCode);
-        int matchLength = getMatchLength(findOkved.code());
+        Map.Entry<Integer, Okved> findOkved = findOkved(okvedCodeMap, potentialOkvedCode);
 
-        return OkvedMapper.toResponse(normalizePhoneNumber, findOkved, matchLength);
+        return OkvedMapper.toResponse(normalizePhoneNumber, findOkved.getValue(), findOkved.getKey());
     }
 
     @NonNull
-    private String fetchPotentialOkvedCode(@NonNull String phoneNumber) {
+    private String getPotentialOkvedCode(@NonNull String phoneNumber) {
         return phoneNumber
-                .substring(phoneNumber.length() - 6);
+                .substring(phoneNumber.length() - MAX_OKVED_CODE_LENGTH);
     }
 
-    // TODO нужно:
-    //  +79279901111 -> 01.11.1 (5)
-    //  +79279990113 -> 01.13   (4)
-    //  +79279999901 -> 01      (2)
     @NonNull
-    private Okved findOkved(@NonNull List<Okved> okveds, @NonNull String endPhone) {
-        for (Okved okved : okveds) {
-            String code = removeDots(okved.code());
+    private Map.Entry<Integer, Okved> findOkved(@NonNull Map<String, Okved> okveds, @NonNull String endPhone) {
+        for (int i = MAX_OKVED_CODE_LENGTH; i > 0; i--) {
+            Okved okved = okveds.get(endPhone.substring(MAX_OKVED_CODE_LENGTH - i));
 
-            if (endPhone.startsWith(code)) { // TODO ОКВЕД по типу "01.13.4" никогда не будет найден
-                Okved findOkved = isEmpty(okved.items())
-                        ? okved
-                        : findOkved(okved.items(), endPhone);
-
-                return findOkved == Okved.UNKNOWN ? okved : findOkved;
+            if (okved != null) {
+                return Map.entry(i, okved);
             }
         }
 
-        return Okved.UNKNOWN;
-    }
-
-    @NonNull
-    private String removeDots(@NonNull String text) {
-        return text.replace(".", "");
-    }
-
-    private int getMatchLength(@NonNull String code) {
-        return UNKNOWN.equalsIgnoreCase(code) ? 0 : removeDots(code).length();
+        return Map.entry(0, Okved.UNKNOWN);
     }
 }

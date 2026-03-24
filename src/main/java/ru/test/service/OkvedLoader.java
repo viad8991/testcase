@@ -3,11 +3,11 @@ package ru.test.service;
 import org.springframework.lang.NonNull;
 import ru.test.dto.Okved;
 
-import java.util.List;
+import java.util.Map;
 
 public interface OkvedLoader {
 
     @NonNull
-    List<Okved> getOkveds();
+    Map<String, Okved> getOkveds();
 
 }

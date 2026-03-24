@@ -1,6 +1,6 @@
 okved:
   source:
-    url: http://localhost:8080/mock/okved.json
+    uri: "classpath:okved.json"
 
 logging:
   level:

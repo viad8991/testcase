@@ -19,4 +19,8 @@ curl -X POST http://localhost:8080/api/v1/okved/find?phone=89000011112
 
 
 ## GitJira:
-1. testcase-1: Обновить логу поиска ОКВЕДа
+1. ✅ testcase-1: Обновить логу поиска ОКВЕДа
+     
+   Изменил логику поиска ОКВЕДов.<br>
+   Улучшил код обновления ОКВЕДов и закрыл некоторые TODO-шки.<br>
+   Оставил отдельной веткой [tc-1]: https://github.com/viad8991/testcase/tree/tc-1

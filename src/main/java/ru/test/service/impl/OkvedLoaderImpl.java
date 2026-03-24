@@ -6,6 +6,7 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -14,8 +15,7 @@ import ru.test.dto.Okved;
 import ru.test.service.OkvedLoader;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,18 +31,18 @@ public class OkvedLoaderImpl implements OkvedLoader {
 
     private final Logger log = LoggerFactory.getLogger(OkvedLoaderImpl.class);
 
+    private final Resource okvedResource;
     private final ObjectMapper objectMapper;
-    private final String okvedsDataUrl;
 
-    private AtomicReference<Map<String, Okved>> okvedsCache = new AtomicReference<>(Map.of()); //TODO БД
+    private final AtomicReference<Map<String, Okved>> okvedsCache = new AtomicReference<>(Map.of()); //TODO БД
 
     public OkvedLoaderImpl(
-            ObjectMapper objectMapper,
-            @Value("${okved.source.url}")
-            String okvedsDataUrl
+            @Value("${okved.source.uri}")
+            Resource okvedResource,
+            ObjectMapper objectMapper
     ) {
+        this.okvedResource = okvedResource;
         this.objectMapper = objectMapper;
-        this.okvedsDataUrl = okvedsDataUrl;
     }
 
     @PostConstruct
@@ -59,22 +59,20 @@ public class OkvedLoaderImpl implements OkvedLoader {
 
     @Scheduled(cron = "0 0 3 * * ?")
     public void refreshOkvedData() {
-        log.info("Начало обновления ОКВЕДов");
-        log.debug("Из источника: {}", okvedsDataUrl);
+        log.info("Начало обновления ОКВЕДов из: {}", okvedResource);
 
-        try {
-            URL url = URI.create(okvedsDataUrl).toURL();
-            List<Node> nodes = objectMapper.readValue(url, new TypeReference<>() {
+        try (InputStream inputStream = okvedResource.getInputStream()) {
+            List<Node> nodes = objectMapper.readValue(inputStream, new TypeReference<>() {
             });
 
             if (nodes != null) {
                 okvedsCache.set(toOkvedCodeMap(nodes));
-                log.info("ОКВЕДы были обновлены");
-            } else {
-                log.info("ОКВЕДы небыли обновлены");
+                log.info("ОКВЕДы успешно обновлены");
             }
         } catch (IOException ex) {
-            log.error("Возникла ошибка при обновлении ОКВЕДов", ex);
+            log.error("Ошибка при чтении или десериализации ОКВЕДов", ex);
+        } catch (Exception ex) {
+            log.error("Непредвиденная ошибка при обновлении ОКВЕДов", ex);
         }
     }
 

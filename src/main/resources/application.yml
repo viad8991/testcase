@@ -1,3 +1,3 @@
 okved:
   source:
-    url: https://raw.githubusercontent.com/bergstar/testcase/refs/heads/master/okved.json
+    uri: https://raw.githubusercontent.com/bergstar/testcase/refs/heads/master/okved.json
